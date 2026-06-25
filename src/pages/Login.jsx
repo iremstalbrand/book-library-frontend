@@ -1,7 +1,11 @@
+import { useNavigate } from "react-router";
 import { useState } from "react";
-import { login } from "../api/auth";
+import { login as loginRequest } from "../api/auth";
+import { useAuth } from "../hooks/AuthContext";
 
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,13 +17,11 @@ function Login() {
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const data = await loginRequest(email, password);
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.token, data.user);
 
-      console.log("Login successful:", data);
-      alert("Login successful!");
+      navigate("/books");
     } catch (err) {
       setError(err.message);
     } finally {
