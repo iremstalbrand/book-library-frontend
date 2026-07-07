@@ -71,6 +71,24 @@ export async function toggleBookStatus(id) {
   return data;
 }
 
+// GET — Google Books proxy
+export async function searchBooks(query) {
+  const response = await fetch(
+    `${API_URL}/search?q=${encodeURIComponent(query)}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to search books");
+  }
+
+  return data;
+}
+
 // POST
 export async function addReview(id, rating, comment) {
   const response = await fetch(`${API_URL}/books/${id}/reviews`, {
