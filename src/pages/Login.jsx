@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { useState } from "react";
 import { login as loginRequest } from "../api/auth";
 import { useAuth } from "../hooks/AuthContext";
@@ -30,49 +30,67 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
-      <div className="w-full max-w-md p-8 bg-slate-800 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+    <div className="min-h-screen bg-cream dark:bg-ink flex items-center justify-center px-4 transition-colors">
+      <div className="w-full max-w-sm">
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-ink dark:text-cream">
+            Welcome Back
+          </h1>
+          <p className="mt-2 text-sm text-muted">Sign in to your library</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-900 text-red-100 rounded text-sm">
-              {error}
+        <div className="bg-surface dark:bg-dark-surface rounded-2xl shadow-sm p-8 transition-colors">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-3 rounded text-sm bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-muted">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full py-2 bg-transparent border-b border-muted/40 dark:border-muted/30 focus:outline-none focus:border-gold transition-colors text-ink dark:text-cream placeholder:text-muted/50"
+                placeholder="you@example.com"
+              />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-slate-700 rounded border border-slate-600 focus:outline-none focus:border-purple-500"
-              placeholder="you@example.com"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold uppercase tracking-widest text-muted">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full py-2 bg-transparent border-b border-muted/40 dark:border-muted/30 focus:outline-none focus:border-gold transition-colors text-ink dark:text-cream placeholder:text-muted/50"
+                placeholder="••••••••"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-slate-700 rounded border border-slate-600 focus:outline-none focus:border-purple-500"
-              placeholder="••••••••"
-            />
-          </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-navy dark:bg-gold text-cream dark:text-ink hover:opacity-90 disabled:opacity-50 rounded-lg font-semibold tracking-wide transition-colors"
+            >
+              {loading ? "Signing in…" : "Sign In"}
+            </button>
+          </form>
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded font-medium transition-colors"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+        <p className="mt-6 text-center text-sm text-muted">
+          New here?{" "}
+          <Link to="/register" className="text-gold hover:underline font-medium">
+            Create an account
+          </Link>
+        </p>
       </div>
     </div>
   );

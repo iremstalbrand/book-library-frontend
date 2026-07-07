@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Light theme */
+  --color-cream: #f5f0e8;        /* page bg */
+  --color-surface: #faf6ef;      /* card bg */
+  --color-ink: #0f1828;          /* primary text / navy */
+  --color-muted: #6b7280;        /* secondary text */
+  --color-gold: #b8794a;         /* accents / links */
+  --color-navy: #0f1828;         /* CTA buttons */
+
+  /* Dark theme */
+  --color-dark-surface: #1a263a; /* dark mode card bg (slightly lighter than ink) */
+}
