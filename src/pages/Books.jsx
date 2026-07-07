@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getBooks, addBook, deleteBook } from "../api/books";
+import { getBooks, addBook, deleteBook, toggleBookStatus } from "../api/books";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -70,6 +70,18 @@ function Books() {
     }
   };
 
+  const handleToggleStatus = async (id) => {
+    try {
+      const result = await toggleBookStatus(id);
+      setBooks(
+        books.map((book) =>
+          book._id === id ? { ...book, status: result.status } : book,
+        ),
+      );
+    } catch (err) {
+      alert(err.message);
+    }
+  };
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
@@ -178,7 +190,8 @@ function Books() {
                 </span>
 
                 <span
-                  className={`px-2 py-1 rounded ${
+                  onClick={() => handleToggleStatus(book._id)}
+                  className={`px-2 py-1 rounded cursor-pointer  ${
                     book.status === "read" ? "bg-green-700" : "bg-yellow-700"
                   }`}
                 >
