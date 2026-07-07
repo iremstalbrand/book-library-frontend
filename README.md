@@ -1,16 +1,51 @@
-# React + Vite
+# Book Library
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A mobile-first personal book library. Sign up, search Google Books to add titles (or add manually), track read/unread status, and leave a rating + review per book.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + Vite
+- Tailwind CSS v4 (class-based dark mode)
+- React Router
 
-## React Compiler
+## Requirements
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This is the frontend only. Backend repo: [book-library-API](https://github.com/iremstalbrand/book-library-API)
 
-## Expanding the ESLint configuration
+It expects the API server running at `http://localhost:5002` with:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `POST /auth/register`, `POST /auth/login`
+- `GET /books`, `POST /books`, `DELETE /books/:id`
+- `PATCH /books/:id/status` — toggles read/unread
+- `GET /search?q=` (Google Books proxy)
+- `POST /books/:id/reviews` — `{ rating: 1-5, comment }`, one review per book
+
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Runs at `http://localhost:5173` by default (Vite dev server). Make sure the backend is running on port 5002 first, or requests will fail.
+
+## Scripts
+
+- `npm run dev` — start the dev server
+- `npm run build` — production build to `dist/`
+- `npm run preview` — preview the production build locally
+- `npm run lint` — run ESLint
+
+## Project structure
+
+```
+src/
+  api/            fetch wrappers for the backend (auth, books)
+  components/     BottomNav, ThemeToggle, ProtectedRoute
+  hooks/          AuthContext, ThemeContext, ToastContext
+  pages/          Login, Register, Books (library/add/profile + book detail)
+```
+
+- Auth token + user are kept in `localStorage` and restored on load via `AuthContext`.
+- Theme preference is kept in `localStorage` and applied by toggling a `dark` class on `<html>`.
+- Routes: `/login`, `/register`, `/books` (protected), `/` redirects to `/books` or `/login` depending on auth state.
