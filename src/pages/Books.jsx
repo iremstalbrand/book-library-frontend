@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getBooks, addBook } from "../api/books";
+import { getBooks, addBook, deleteBook } from "../api/books";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -58,6 +58,15 @@ function Books() {
       setFormError(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteBook(id);
+      setBooks(books.filter((book) => book._id !== id));
+    } catch (err) {
+      alert(err.message);
     }
   };
 
@@ -167,6 +176,7 @@ function Books() {
                 <span className="px-2 py-1 bg-slate-700 rounded">
                   {book.pages} pages
                 </span>
+
                 <span
                   className={`px-2 py-1 rounded ${
                     book.status === "read" ? "bg-green-700" : "bg-yellow-700"
@@ -175,6 +185,12 @@ function Books() {
                   {book.status}
                 </span>
               </div>
+              <button
+                onClick={() => handleDelete(book._id)}
+                className="mt-3 w-full py-1 bg-red-700 hover:bg-red-800 rounded text-sm"
+              >
+                Delete
+              </button>
             </div>
           ))}
         </div>
