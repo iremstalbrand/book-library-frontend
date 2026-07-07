@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
 import { getBooks, addBook, deleteBook, toggleBookStatus } from "../api/books";
+import { useNavigate } from "react-router";
+import { useAuth } from "../hooks/AuthContext";
 
 function Books() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -82,6 +87,11 @@ function Books() {
       alert(err.message);
     }
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
@@ -107,6 +117,12 @@ function Books() {
           className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded font-medium"
         >
           {showForm ? "Cancel" : "+ Add Book"}
+        </button>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded font-medium"
+        >
+          Logout
         </button>
       </div>
 
