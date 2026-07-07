@@ -5,6 +5,7 @@ import {
   deleteBook,
   toggleBookStatus,
   searchBooks,
+  addReview,
 } from "../api/books";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/AuthContext";
@@ -25,9 +26,12 @@ function coverColor(title) {
 }
 
 // ── BookCard ─────────────────────────────────────────────────────────────────
-function BookCard({ book, onToggle, onDelete }) {
+function BookCard({ book, onToggle, onDelete, onOpen }) {
   return (
-    <div className="flex flex-col bg-surface dark:bg-dark-surface rounded-xl border border-muted/10 overflow-hidden transition-colors">
+    <div
+      onClick={() => onOpen(book._id)}
+      className="flex flex-col bg-surface dark:bg-dark-surface rounded-xl border border-muted/10 overflow-hidden transition-colors cursor-pointer"
+    >
       {book.coverUrl ? (
         <img
           src={book.coverUrl}
@@ -50,7 +54,10 @@ function BookCard({ book, onToggle, onDelete }) {
 
         <div className="flex items-center justify-between mt-1">
           <span
-            onClick={() => onToggle(book._id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(book._id);
+            }}
             className={`text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
               book.status === "read"
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
@@ -61,7 +68,10 @@ function BookCard({ book, onToggle, onDelete }) {
           </span>
 
           <button
-            onClick={() => onDelete(book._id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(book._id);
+            }}
             aria-label="Remove book"
             className="text-xs text-muted/50 hover:text-red-500 dark:hover:text-red-400 transition-colors"
           >
@@ -69,6 +79,210 @@ function BookCard({ book, onToggle, onDelete }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Stars ────────────────────────────────────────────────────────────────────
+function Stars({ value, onChange, size = "text-xl" }) {
+  const interactive = typeof onChange === "function";
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((n) => {
+        const filled = n <= value;
+        const starClass = `${size} leading-none transition-colors ${
+          filled ? "text-gold" : "text-muted/30"
+        } ${interactive ? "cursor-pointer hover:text-gold" : ""}`;
+
+        return interactive ? (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(n)}
+            aria-label={`Rate ${n} star${n > 1 ? "s" : ""}`}
+            className={starClass}
+          >
+            ★
+          </button>
+        ) : (
+          <span key={n} className={starClass} aria-hidden="true">
+            ★
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── ReviewSection ────────────────────────────────────────────────────────────
+function ReviewSection({ book, onSubmit }) {
+  const existing = book.reviews?.[0];
+  const [editing, setEditing] = useState(!existing);
+  const [rating, setRating] = useState(existing?.rating ?? 0);
+  const [comment, setComment] = useState(existing?.comment ?? "");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!rating) {
+      setError("Pick a rating.");
+      return;
+    }
+    setError("");
+    setSubmitting(true);
+    try {
+      await onSubmit(rating, comment);
+      setEditing(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!editing && existing) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">
+            Your Review
+          </h3>
+          <button
+            onClick={() => setEditing(true)}
+            className="text-xs text-gold hover:underline"
+          >
+            Edit
+          </button>
+        </div>
+        <Stars value={existing.rating} />
+        {existing.comment && (
+          <p className="mt-2 text-sm text-ink dark:text-cream leading-relaxed">
+            {existing.comment}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <h3 className="text-xs font-semibold uppercase tracking-widest text-muted">
+        {existing ? "Edit Your Review" : "Add a Review"}
+      </h3>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <Stars value={rating} onChange={setRating} size="text-3xl" />
+
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="What did you think?"
+        rows={3}
+        className="w-full p-3 bg-surface dark:bg-dark-surface border border-muted/20 rounded-lg focus:outline-none focus:border-gold transition-colors text-ink dark:text-cream placeholder:text-muted/50 resize-none"
+      />
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex-1 py-2.5 bg-navy dark:bg-gold text-cream dark:text-ink rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-colors"
+        >
+          {submitting
+            ? "Saving…"
+            : existing
+              ? "Update Review"
+              : "Submit Review"}
+        </button>
+        {existing && (
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(false);
+              setRating(existing.rating);
+              setComment(existing.comment ?? "");
+              setError("");
+            }}
+            className="px-4 py-2.5 text-sm text-muted hover:text-ink dark:hover:text-cream transition-colors"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    </form>
+  );
+}
+
+// ── BookDetail ───────────────────────────────────────────────────────────────
+function BookDetail({ book, onBack, onToggle, onDelete, onAddReview }) {
+  const handleDelete = () => {
+    onDelete(book._id);
+    onBack();
+  };
+
+  return (
+    <div className="max-w-md mx-auto">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1 text-sm text-muted hover:text-ink dark:hover:text-cream mb-5 transition-colors"
+      >
+        ← Back
+      </button>
+
+      <div className="flex flex-col items-center text-center mb-6">
+        {book.coverUrl ? (
+          <img
+            src={book.coverUrl}
+            alt={book.name}
+            className="w-40 aspect-2/3 object-cover rounded-xl shadow-md mb-4"
+          />
+        ) : (
+          <div
+            className={`w-40 aspect-2/3 rounded-xl shadow-md mb-4 flex items-center justify-center font-bold text-5xl ${coverColor(book.name)}`}
+          >
+            {book.name?.[0]?.toUpperCase() ?? "?"}
+          </div>
+        )}
+
+        <h1 className="text-xl font-bold tracking-tight text-ink dark:text-cream">
+          {book.name}
+        </h1>
+        <p className="text-sm text-muted mt-1">{book.author}</p>
+
+        <div className="flex items-center gap-2 mt-3 text-xs text-muted/70">
+          {book.language && <span>{book.language}</span>}
+          {book.language && book.pages ? <span>·</span> : null}
+          {book.pages && <span>{book.pages} pages</span>}
+        </div>
+
+        <span
+          onClick={() => onToggle(book._id)}
+          className={`mt-4 text-xs font-semibold px-3 py-1 rounded-full cursor-pointer transition-colors ${
+            book.status === "read"
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-gold"
+          }`}
+        >
+          {book.status === "read" ? "Read" : "Unread"}
+        </span>
+      </div>
+
+      <div className="border-t border-muted/10 pt-6 mb-6">
+        <ReviewSection
+          book={book}
+          onSubmit={(rating, comment) =>
+            onAddReview(book._id, rating, comment)
+          }
+        />
+      </div>
+
+      <button
+        onClick={handleDelete}
+        className="w-full py-3 text-sm font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800/40 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+      >
+        Delete Book
+      </button>
     </div>
   );
 }
@@ -85,6 +299,9 @@ function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Book detail view
+  const [selectedBookId, setSelectedBookId] = useState(null);
 
   // Manual-form state (existing)
   const [showManualForm, setShowManualForm] = useState(false);
@@ -175,6 +392,15 @@ function Books() {
     navigate("/login");
   };
 
+  const handleAddReview = async (id, rating, comment) => {
+    await addReview(id, rating, comment);
+    setBooks((prev) =>
+      prev.map((book) =>
+        book._id === id ? { ...book, reviews: [{ rating, comment }] } : book,
+      ),
+    );
+  };
+
   // ── New handlers ─────────────────────────────────────────────────────────
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -235,6 +461,7 @@ function Books() {
   const unreadBooks = books.filter((b) => b.status !== "read");
   const readBooks = books.filter((b) => b.status === "read");
   const addedIds = new Set(books.map((b) => b.googleBookId).filter(Boolean));
+  const selectedBook = books.find((b) => b._id === selectedBookId) ?? null;
 
   // Shared style strings
   const inputClass =
@@ -243,6 +470,22 @@ function Books() {
     "block text-xs font-semibold uppercase tracking-widest text-muted mb-1";
 
   // ── Render ────────────────────────────────────────────────────────────────
+  if (selectedBook) {
+    return (
+      <div className="min-h-screen bg-cream dark:bg-ink text-ink dark:text-cream transition-colors">
+        <main className="max-w-4xl mx-auto px-4 py-6">
+          <BookDetail
+            book={selectedBook}
+            onBack={() => setSelectedBookId(null)}
+            onToggle={handleToggleStatus}
+            onDelete={handleDelete}
+            onAddReview={handleAddReview}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-cream dark:bg-ink text-ink dark:text-cream transition-colors">
       <BottomNav activeView={activeView} onViewChange={setActiveView} />
@@ -278,6 +521,7 @@ function Books() {
                           book={book}
                           onToggle={handleToggleStatus}
                           onDelete={handleDelete}
+                          onOpen={setSelectedBookId}
                         />
                       ))}
                     </div>
@@ -297,6 +541,7 @@ function Books() {
                           book={book}
                           onToggle={handleToggleStatus}
                           onDelete={handleDelete}
+                          onOpen={setSelectedBookId}
                         />
                       ))}
                     </div>
