@@ -9,8 +9,8 @@ import {
 } from "../api/books";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hooks/AuthContext";
-import { useTheme } from "../hooks/ThemeContext";
 import BottomNav from "../components/BottomNav";
+import ThemeToggle from "../components/ThemeToggle";
 
 // ── Cover placeholder ────────────────────────────────────────────────────────
 const COVER_COLORS = [
@@ -223,12 +223,15 @@ function BookDetail({ book, onBack, onToggle, onDelete, onAddReview }) {
 
   return (
     <div className="max-w-md mx-auto">
-      <button
-        onClick={onBack}
-        className="flex items-center gap-1 text-sm text-muted hover:text-ink dark:hover:text-cream mb-5 transition-colors"
-      >
-        ← Back
-      </button>
+      <div className="flex items-center justify-between mb-5">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 text-sm text-muted hover:text-ink dark:hover:text-cream transition-colors"
+        >
+          ← Back
+        </button>
+        <ThemeToggle />
+      </div>
 
       <div className="flex flex-col items-center text-center mb-6">
         {book.coverUrl ? (
@@ -291,7 +294,6 @@ function BookDetail({ book, onBack, onToggle, onDelete, onAddReview }) {
 function Books() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { dark, toggle } = useTheme();
 
   const [activeView, setActiveView] = useState("library");
 
@@ -555,90 +557,8 @@ function Books() {
         {/* ── ADD VIEW ──────────────────────────────────────────────────── */}
         {activeView === "add" && (
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted mb-5">
-              Search Books
-            </h2>
-
-            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Title, author, ISBN…"
-                className="flex-1 py-2 bg-transparent border-b border-muted/40 dark:border-muted/30 focus:outline-none focus:border-gold transition-colors text-ink dark:text-cream placeholder:text-muted/50"
-              />
-              <button
-                type="submit"
-                disabled={searching}
-                className="px-4 py-2 bg-navy dark:bg-gold text-cream dark:text-ink rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-colors shrink-0"
-              >
-                {searching ? "…" : "Search"}
-              </button>
-            </form>
-
-            {searchError && (
-              <p className="mb-4 text-sm text-red-500">{searchError}</p>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="space-y-2 mb-8">
-                {searchResults.map((result) => {
-                  const alreadyAdded = addedIds.has(result.googleBookId);
-                  const isAdding = addingBookId === result.googleBookId;
-                  return (
-                    <div
-                      key={result.googleBookId}
-                      className="flex items-center gap-3 p-3 bg-surface dark:bg-dark-surface rounded-xl border border-muted/10 transition-colors"
-                    >
-                      {result.coverUrl ? (
-                        <img
-                          src={result.coverUrl}
-                          alt={result.title}
-                          className="w-10 h-14 object-cover rounded shrink-0"
-                        />
-                      ) : (
-                        <div
-                          className={`w-10 h-14 rounded shrink-0 flex items-center justify-center font-bold text-lg ${coverColor(result.title)}`}
-                        >
-                          {result.title?.[0]?.toUpperCase() ?? "?"}
-                        </div>
-                      )}
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-ink dark:text-cream truncate leading-snug">
-                          {result.title}
-                        </p>
-                        <p className="text-xs text-muted truncate">
-                          {result.author}
-                        </p>
-                        {result.pages && (
-                          <p className="text-xs text-muted/70 mt-0.5">
-                            {result.pages} pages
-                          </p>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          !alreadyAdded && handleAddFromSearch(result)
-                        }
-                        disabled={alreadyAdded || isAdding}
-                        className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
-                          alreadyAdded
-                            ? "text-muted cursor-default"
-                            : "bg-navy dark:bg-gold text-cream dark:text-ink hover:opacity-90 disabled:opacity-50"
-                        }`}
-                      >
-                        {isAdding ? "…" : alreadyAdded ? "Added" : "+ Add"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Manual form fallback */}
-            <div className="border-t border-muted/10 pt-6">
+            {/* Manual add — top */}
+            <div className="mb-8">
               <button
                 onClick={() => setShowManualForm(!showManualForm)}
                 className="text-xs text-muted hover:text-gold transition-colors"
@@ -725,6 +645,88 @@ function Books() {
                 </form>
               )}
             </div>
+
+            <h2 className="text-xs font-semibold uppercase tracking-widest text-muted mb-5 border-t border-muted/10 pt-6">
+              Search Books
+            </h2>
+
+            <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Title, author, ISBN…"
+                className="flex-1 py-2 bg-transparent border-b border-muted/40 dark:border-muted/30 focus:outline-none focus:border-gold transition-colors text-ink dark:text-cream placeholder:text-muted/50"
+              />
+              <button
+                type="submit"
+                disabled={searching}
+                className="px-4 py-2 bg-navy dark:bg-gold text-cream dark:text-ink rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-colors shrink-0"
+              >
+                {searching ? "…" : "Search"}
+              </button>
+            </form>
+
+            {searchError && (
+              <p className="mb-4 text-sm text-red-500">{searchError}</p>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="space-y-2 mb-8">
+                {searchResults.map((result) => {
+                  const alreadyAdded = addedIds.has(result.googleBookId);
+                  const isAdding = addingBookId === result.googleBookId;
+                  return (
+                    <div
+                      key={result.googleBookId}
+                      className="flex items-center gap-3 p-3 bg-surface dark:bg-dark-surface rounded-xl border border-muted/10 transition-colors"
+                    >
+                      {result.coverUrl ? (
+                        <img
+                          src={result.coverUrl}
+                          alt={result.title}
+                          className="w-10 h-14 object-cover rounded shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className={`w-10 h-14 rounded shrink-0 flex items-center justify-center font-bold text-lg ${coverColor(result.title)}`}
+                        >
+                          {result.title?.[0]?.toUpperCase() ?? "?"}
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-ink dark:text-cream truncate leading-snug">
+                          {result.title}
+                        </p>
+                        <p className="text-xs text-muted truncate">
+                          {result.author}
+                        </p>
+                        {result.pages && (
+                          <p className="text-xs text-muted/70 mt-0.5">
+                            {result.pages} pages
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          !alreadyAdded && handleAddFromSearch(result)
+                        }
+                        disabled={alreadyAdded || isAdding}
+                        className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                          alreadyAdded
+                            ? "text-muted cursor-default"
+                            : "bg-navy dark:bg-gold text-cream dark:text-ink hover:opacity-90 disabled:opacity-50"
+                        }`}
+                      >
+                        {isAdding ? "…" : alreadyAdded ? "Added" : "+ Add"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -749,25 +751,6 @@ function Books() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between py-3 border-b border-muted/10">
-                <span className="text-sm text-ink dark:text-cream">
-                  Dark mode
-                </span>
-                <button
-                  onClick={toggle}
-                  aria-label="Toggle theme"
-                  className={`relative w-10 h-6 rounded-full transition-colors ${
-                    dark ? "bg-gold" : "bg-muted/30"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                      dark ? "translate-x-5" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
               <button
                 onClick={handleLogout}
                 className="w-full py-3 text-sm font-semibold text-red-500 dark:text-red-400 border border-red-200 dark:border-red-800/40 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"

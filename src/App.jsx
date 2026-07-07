@@ -1,8 +1,14 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import Login from "./pages/Login";
 import Books from "./pages/Books";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useAuth } from "./hooks/AuthContext";
+
+function Root() {
+  const { token } = useAuth();
+  return <Navigate to={token ? "/books" : "/login"} replace />;
+}
 
 function App() {
   return (
@@ -17,7 +23,7 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route path="/" element={<div>Home page</div>} />
+      <Route path="/" element={<Root />} />
     </Routes>
   );
 }

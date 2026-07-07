@@ -2,6 +2,7 @@ import { useNavigate, Link } from "react-router";
 import { useState } from "react";
 import { login as loginRequest } from "../api/auth";
 import { useAuth } from "../hooks/AuthContext";
+import ThemeToggle from "../components/ThemeToggle";
 
 function Login() {
   const navigate = useNavigate();
@@ -31,6 +32,10 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-cream dark:bg-ink flex items-center justify-center px-4 transition-colors">
+      <div className="fixed top-3 right-3 z-50">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-sm">
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-ink dark:text-cream">

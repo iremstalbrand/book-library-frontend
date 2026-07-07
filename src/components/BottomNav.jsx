@@ -1,3 +1,5 @@
+import ThemeToggle from "./ThemeToggle";
+
 function BottomNav({ activeView, onViewChange }) {
   const navItems = [
     {
@@ -71,6 +73,11 @@ function BottomNav({ activeView, onViewChange }) {
 
   return (
     <>
+      {/* Mobile: fixed top-right toggle — bottom bar has no header row to hold it */}
+      <div className="md:hidden fixed top-3 right-3 z-50">
+        <ThemeToggle className="bg-surface dark:bg-dark-surface shadow-sm" />
+      </div>
+
       {/* Mobile bottom bar — hidden at md+ */}
       <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-surface dark:bg-dark-surface border-t border-muted/10 transition-colors">
         <div className="flex items-center justify-around h-16">
@@ -93,18 +100,21 @@ function BottomNav({ activeView, onViewChange }) {
         <span className="font-bold tracking-tight text-ink dark:text-cream">
           My Library
         </span>
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onViewChange(item.id)}
-              className={desktopItemClass(item.id)}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          ))}
-        </nav>
+        <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onViewChange(item.id)}
+                className={desktopItemClass(item.id)}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+          <ThemeToggle />
+        </div>
       </header>
     </>
   );

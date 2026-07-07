@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { register } from "../api/auth";
+import { useToast } from "../hooks/ToastContext";
+import ThemeToggle from "../components/ThemeToggle";
 
 function Register() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -15,9 +19,9 @@ function Register() {
     setLoading(true);
 
     try {
-      const data = await register(email, password, name);
-      console.log("Register successful:", data);
-      alert("Register successful! Now you can login.");
+      await register(email, password, name);
+      showToast("Account created! You can sign in now.");
+      navigate("/login");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -27,6 +31,10 @@ function Register() {
 
   return (
     <div className="min-h-screen bg-cream dark:bg-ink flex items-center justify-center px-4 transition-colors">
+      <div className="fixed top-3 right-3 z-50">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-sm">
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-ink dark:text-cream">
